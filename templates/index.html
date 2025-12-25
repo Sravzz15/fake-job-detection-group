@@ -439,6 +439,17 @@
                 // NOTE: The following fetch call assumes you have a backend running at '/flag_post'
                 // This is purely for demonstration in a static context, and will fail without a backend.
                 // Assuming success for UI demonstration:
+                const response = await fetch('/flag_post', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        post_id: currentPostId   
+                    })
+                });
+
+                const result = await response.json();
                 await new Promise(resolve => setTimeout(resolve, 500)); 
 
                 document.getElementById('flagMsg').classList.remove('hidden');
