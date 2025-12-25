@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - JobCheck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans flex flex-col min-h-screen">
+
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-extrabold text-blue-700 flex items-center tracking-wide hover:text-blue-800 transition">
+                <i class="fas fa-shield-alt mr-2"></i> JobCheck
+            </a>
+            
+            <button id="menu-button" onclick="toggleMenu()" class="md:hidden text-gray-600 focus:outline-none">
+                <i class="fas fa-bars text-2xl" id="menu-icon"></i>
+            </button>
+
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="/" class="text-gray-600 hover:text-blue-600 font-medium transition duration-200">Home</a>
+                <a href="/scanner" class="text-gray-600 hover:text-blue-600 font-medium transition duration-200">Job Scanner</a>
+                <a href="/about" class="text-blue-600 font-bold border-b-2 border-blue-600">About Us</a>
+                <a href="/admin_login" class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-md hover:bg-blue-700 transition transform hover:-translate-y-0.5 text-sm">Admin</a>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-inner border-t border-gray-100 pb-4">
+            <div class="flex flex-col space-y-2 px-4 pt-2">
+                <a href="/" class="text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-100">Home</a>
+                <a href="/scanner" class="text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-100">Job Scanner</a>
+                <a href="/about" class="text-blue-600 font-bold py-2 px-3 rounded-lg bg-blue-50">About Us</a>
+                <a href="/admin_login" class="bg-blue-600 text-white px-3 py-2.5 rounded-lg font-bold shadow-md hover:bg-blue-700 transition mt-2 text-center">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="relative bg-blue-700 text-white py-16 md:py-20 text-center overflow-hidden">
+        <div class="absolute inset-0 bg-blue-900 opacity-50"></div>
+        <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
+        
+        <div class="container mx-auto px-4 sm:px-6 relative z-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">Protecting Job Seekers with AI</h1>
+            <p class="text-lg md:text-xl text-blue-100 max-w-3xl mx-auto font-light">
+                We are on a mission to eliminate fake job postings and create a safer employment ecosystem for everyone.
+            </p>
+        </div>
+    </div>
+
+    <main class="flex-grow container mx-auto px-4 sm:px-6 py-12 md:py-16 max-w-6xl">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center mb-16 md:mb-20">
+            <div class="space-y-6">
+                <div class="flex items-center space-x-3 mb-2">
+                    <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Our Story</span>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 leading-tight">Why We Built <span class="text-blue-600">JobCheck</span></h2>
+                <p class="text-gray-600 text-base md:text-lg leading-relaxed">
+                    Online job scams are skyrocketing. Every year, millions of job seekers fall victim to fraudulent listings that steal personal data, money, and time. 
+                </p>
+                <p class="text-gray-600 text-base md:text-lg leading-relaxed">
+                    We realized that manual checking isn't enough. Scammers are getting smarter, using professional-looking templates. That's why we built <strong>JobCheck</strong>—an AI-powered tool that analyzes the <em>language patterns</em> of a job post to detect hidden signs of fraud.
+                </p>
+            </div>
+            <div class="relative">
+                <div class="absolute -inset-4 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl opacity-20 blur-lg hidden md:block"></div>
+                <div class="relative bg-white p-6 md:p-8 rounded-2xl shadow-xl border-l-4 border-blue-600">
+                    <h3 class="text-2xl font-bold text-blue-800 mb-6">Our Core Values</h3>
+                    <ul class="space-y-6">
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl mr-4">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-lg">Accuracy First</h4>
+                                <p class="text-sm text-gray-500">Trained on 18,000+ verified datasets to ensure reliability.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl mr-4">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-lg">Community Driven</h4>
+                                <p class="text-sm text-gray-500">User feedback helps our model get smarter every day.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xl mr-4">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-lg">Privacy Focused</h4>
+                                <p class="text-sm text-gray-500">We analyze text, not your personal data. Your privacy matters.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden mb-16 md:mb-20">
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <div class="bg-gray-900 p-8 md:p-12 text-white flex flex-col justify-center">
+                    <h3 class="text-3xl font-bold mb-6">Under the Hood</h3>
+                    <p class="text-gray-400 text-base md:text-lg mb-8 leading-relaxed">
+                        JobCheck isn't just a simple filter. It's a machine learning system that understands the context of words.
+                    </p>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex items-center">
+                            <i class="fas fa-code text-blue-400 mr-3 text-xl"></i>
+                            <span class="font-mono text-blue-200">Python & Flask Backend</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-brain text-purple-400 mr-3 text-xl"></i>
+                            <span class="font-mono text-purple-200">Scikit-Learn ML Model</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-database text-green-400 mr-3 text-xl"></i>
+                            <span class="font-mono text-green-200">SQLite Database Storage</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-language text-yellow-400 mr-3 text-xl"></i>
+                            <span class="font-mono text-yellow-200">NLP (TF-IDF & NLTK)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-8 md:p-12 bg-blue-50 flex items-center justify-center">
+                    <div class="grid grid-cols-1 gap-6 w-full">
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-blue-100 transform hover:scale-105 transition duration-300">
+                            <h4 class="font-bold text-gray-800 mb-2 flex items-center"><i class="fas fa-file-alt text-blue-500 mr-2"></i> 1. Input Analysis</h4>
+                            <p class="text-sm text-gray-600">The system cleans your text, removing noise and formatting.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-blue-100 transform hover:scale-105 transition duration-300">
+                            <h4 class="font-bold text-gray-800 mb-2 flex items-center"><i class="fas fa-microchip text-indigo-500 mr-2"></i> 2. Pattern Matching</h4>
+                            <p class="text-sm text-gray-600">It compares your job description against thousands of known fake patterns.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-blue-100 transform hover:scale-105 transition duration-300">
+                            <h4 class="font-bold text-gray-800 mb-2 flex items-center"><i class="fas fa-chart-pie text-green-500 mr-2"></i> 3. Probability Score</h4>
+                            <p class="text-sm text-gray-600">It calculates a precise confidence score (e.g., "92% likely Fake").</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Ready to check a job?</h2>
+            <a href="/scanner" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 hover:shadow-xl transform hover:-translate-y-1">
+                <i class="fas fa-search mr-2"></i> Go to Scanner
+            </a>
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-900 text-white py-12 mt-auto">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center border-b border-gray-800 pb-8 mb-8">
+                <div class="mb-6 md:mb-0 text-center md:text-left">
+                    <h3 class="text-2xl font-bold flex items-center justify-center md:justify-start text-white">
+                        <i class="fas fa-shield-alt mr-2 text-blue-500"></i> JobCheck
+                    </h3>
+                    <p class="text-gray-400 text-sm mt-2 max-w-xs mx-auto md:mx-0">Building a safer future for job seekers everywhere.</p>
+                </div>
+                <div class="flex space-x-4 md:space-x-8 font-medium text-sm">
+                    <a href="/" class="text-gray-300 hover:text-white transition hover:underline">Home</a>
+                    <a href="/scanner" class="text-gray-300 hover:text-white transition hover:underline">Scanner</a>
+                    <a href="/about" class="text-white font-bold transition hover:underline">About</a>
+                    <a href="/admin_login" class="text-gray-300 hover:text-white transition hover:underline">Admin</a>
+                </div>
+            </div>
+             <div class="text-center text-gray-500 text-sm">
+                &copy; 2025 FAKE JOB DETECATION USING NLP GROUP PROJECT DEVELOPED BY <i class="fas fa-heart text-red-500 mx-1"></i>TEAM 4.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // TOGGLE MENU LOGIC
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            
+            // Toggle the visibility class
+            menu.classList.toggle('hidden');
+
+            // Toggle the icon
+            if (menu.classList.contains('hidden')) {
+                // Menu is hidden, show bars icon
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            } else {
+                // Menu is visible, show times icon
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            }
+        }
+    </script>
+
+</body>
+</html>

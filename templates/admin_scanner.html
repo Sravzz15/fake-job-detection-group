@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scanner Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl">
+            <div class="h-20 flex items-center justify-center border-b border-slate-700">
+                <h1 class="text-2xl font-bold tracking-wider"><i class="fas fa-shield-alt mr-2"></i>ADMIN</h1>
+            </div>
+            <nav class="flex-1 px-2 py-6 space-y-2">
+                <a href="/admin_dashboard" class="flex items-center px-4 py-3 rounded-lg {{ 'bg-blue-600 shadow-lg' if page == 'dashboard' else 'text-slate-300 hover:bg-slate-800' }}">
+                    <i class="fas fa-chart-line w-6"></i> <span class="font-medium ml-3">Dashboard</span>
+                </a>
+                <a href="/admin_scanner" class="flex items-center px-4 py-3 rounded-lg {{ 'bg-blue-600 shadow-lg' if page == 'scanner' else 'text-slate-300 hover:bg-slate-800' }}">
+                    <i class="fas fa-search w-6"></i> <span class="font-medium ml-3">Scanner Tool</span>
+                </a>
+                <a href="/admin_history" class="flex items-center px-4 py-3 rounded-lg {{ 'bg-blue-600 shadow-lg' if page == 'history' else 'text-slate-300 hover:bg-slate-800' }}">
+                    <i class="fas fa-history w-6"></i> <span class="font-medium ml-3">History Logs</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-700">
+                <a href="/logout" class="flex items-center px-4 py-2 text-red-400 hover:text-red-300"><i class="fas fa-sign-out-alt w-6"></i> <span class="ml-3">Logout</span></a>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center">
+            <div class="bg-white shadow-xl rounded-xl w-full max-w-2xl overflow-hidden">
+                <div class="bg-blue-600 p-6 text-center text-white">
+                    <h2 class="text-2xl font-bold">Live Job Scanner</h2>
+                </div>
+                <div class="p-8">
+                    <form id="predictForm" class="space-y-6">
+                        <textarea id="job_text" rows="6" class="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Paste job description..." required></textarea>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Analyze</button>
+                    </form>
+                    <div id="result" class="hidden mt-6 p-6 rounded-lg text-center">
+                        <h2 id="resultTitle" class="text-2xl font-bold"></h2>
+                        <p id="resultDesc" class="mt-1 text-gray-600"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('predictForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const text = document.getElementById('job_text').value;
+            const resultDiv = document.getElementById('result');
+            const title = document.getElementById('resultTitle');
+            const desc = document.getElementById('resultDesc');
+            
+            const response = await fetch('/predict', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: text }) });
+            const data = await response.json();
+            
+            resultDiv.classList.remove('hidden');
+            if (data.prediction === "Fake Job") {
+                resultDiv.className = "mt-6 p-6 rounded-lg text-center bg-red-50 border border-red-200";
+                title.innerText = "🚨 Fake Job Detected"; title.className = "text-2xl font-bold text-red-600";
+            } else {
+                resultDiv.className = "mt-6 p-6 rounded-lg text-center bg-green-50 border border-green-200";
+                title.innerText = "✅ Real Job Detected"; title.className = "text-2xl font-bold text-green-600";
+            }
+            desc.innerText = `Confidence: ${data.confidence}%`;
+        });
+    </script>
+</body>
+</html>

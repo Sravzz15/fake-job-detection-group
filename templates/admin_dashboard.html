@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - JobCheck AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .sidebar-gradient {
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+    <div class="flex h-screen overflow-hidden">
+        
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black opacity-0 lg:opacity-0 pointer-events-none transition-opacity duration-300 z-10"></div>
+
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 sidebar-gradient text-white flex flex-col shadow-2xl transition-all duration-300 z-20 transform -translate-x-full lg:relative lg:translate-x-0">
+            <div class="h-20 flex items-center px-8 border-b border-slate-700/50">
+                <h1 class="text-xl font-bold tracking-wider flex items-center">
+                    <i class="fas fa-shield-alt text-blue-400 mr-3"></i> 
+                    <span>JobCheck<span class="text-blue-400">AI</span></span>
+                </h1>
+                <button onclick="toggleSidebar()" class="lg:hidden ml-auto p-2 text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <div class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Main Menu</div>
+                
+                <a href="/admin_dashboard" class="flex items-center px-4 py-3 rounded-xl bg-blue-600 shadow-lg shadow-blue-900/20 text-white transition-all transform hover:scale-[1.02]">
+                    <i class="fas fa-chart-pie w-6"></i> <span class="font-medium ml-3">Dashboard</span>
+                </a>
+                
+                <a href="/model_comparison" class="flex items-center px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all group">
+                    <i class="fas fa-balance-scale w-6 group-hover:text-blue-400 transition-colors"></i> <span class="font-medium ml-3">Model Comparison</span>
+                </a>
+
+                <a href="/admin_history" class="flex items-center px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all group">
+                    <i class="fas fa-history w-6 group-hover:text-purple-400 transition-colors"></i> <span class="font-medium ml-3">History Logs</span>
+                </a>
+                
+                <div class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-2">System</div>
+
+                <a href="/training_logs" class="flex items-center px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all group">
+                    <i class="fas fa-cogs w-6 group-hover:text-green-400 transition-colors"></i> <span class="font-medium ml-3">Training Logs</span>
+                </a>
+                <a href="/export_data" class="flex items-center px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all group">
+                    <i class="fas fa-file-download w-6 group-hover:text-yellow-400 transition-colors"></i> <span class="font-medium ml-3">Export Data</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-slate-700/50 bg-slate-900/50">
+                <a href="/logout" class="flex items-center px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition text-sm font-medium mb-4">
+                    <i class="fas fa-sign-out-alt w-5"></i> Logout
+                </a>
+                
+                <button onclick="confirmRetrain()" id="retrainBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3 px-4 rounded-xl flex items-center justify-center transition-all shadow-lg font-semibold text-sm">
+                    <i class="fas fa-sync-alt mr-2"></i> Retrain Model
+                </button>
+                <p id="trainStatus" class="text-[10px] text-center mt-2 text-slate-400 min-h-[15px] font-mono"></p>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-4 md:p-8 relative">
+            
+            <div class="lg:hidden flex items-center justify-between mb-6">
+                <button onclick="toggleSidebar()" class="text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg bg-white shadow-sm border border-slate-200">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl font-bold tracking-wider flex items-center mr-auto ml-4">
+                    <i class="fas fa-shield-alt text-blue-400 mr-2"></i> 
+                    <span>JobCheck<span class="text-blue-400">AI</span></span>
+                </h1>
+            </div>
+
+            <div id="resultModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-opacity duration-300">
+                <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform transition-all scale-100 border border-slate-100">
+                    <div class="text-center">
+                        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-50 mb-6 border-4 border-green-100">
+                            <i class="fas fa-check text-4xl text-green-500"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Retraining Complete!</h3>
+                        <p class="text-slate-500 mb-8 text-sm">The AI model has been successfully updated with the latest dataset.</p>
+                        
+                        <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-8">
+                            <div class="text-center w-1/3">
+                                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Old</p>
+                                <p class="text-lg font-bold text-slate-600" id="modalOld">--%</p>
+                            </div>
+                            <div class="w-px h-8 bg-slate-300"></div>
+                            <div class="text-center w-1/3">
+                                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">New</p>
+                                <p class="text-lg font-bold text-blue-600" id="modalNew">--%</p>
+                            </div>
+                            <div class="w-px h-8 bg-slate-300"></div>
+                            <div class="text-center w-1/3">
+                                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Change</p>
+                                <p class="text-lg font-bold" id="modalImp">--%</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center space-x-3">
+                            <button onclick="closeModal()" class="px-6 py-2.5 rounded-xl border border-slate-300 text-slate-600 font-semibold hover:bg-slate-50 transition text-sm">
+                                Close
+                            </button>
+                            <a href="/model_comparison" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-200 transition text-sm">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">System Overview</h2>
+                    <p class="text-slate-500 mt-2 font-medium text-sm md:text-base">Real-time analytics and monitoring dashboard.</p>
+                </div>
+                
+                <div class="glass-card px-4 py-3 md:px-6 md:py-4 rounded-2xl shadow-sm flex items-center space-x-4 md:space-x-8 text-xs md:text-sm bg-white w-full md:w-auto">
+                    <div>
+                        <p class="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Last Update</p>
+                        <p class="font-bold text-slate-700 flex items-center"><i class="far fa-clock mr-2 text-blue-400"></i> {{ model_info.last_date }}</p>
+                    </div>
+                    <div class="w-px h-6 md:h-8 bg-slate-200"></div>
+                    <div>
+                        <p class="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Accuracy</p>
+                        <p class="font-bold text-green-600 text-base md:text-lg">{{ model_info.accuracy }}%</p>
+                    </div>
+                    <div class="w-px h-6 md:h-8 bg-slate-200"></div>
+                    <div>
+                        <p class="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Dataset Size</p>
+                        <p class="font-bold text-blue-600">{{ model_info.records }} records</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Scans</p>
+                            <p class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2 group-hover:text-blue-600 transition-colors">{{ total }}</p>
+                        </div>
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Fake Jobs</p>
+                            <p class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2 group-hover:text-red-500 transition-colors">{{ fake }}</p>
+                        </div>
+                        <div class="p-3 bg-red-50 text-red-500 rounded-xl">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Real Jobs</p>
+                            <p class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2 group-hover:text-green-500 transition-colors">{{ real }}</p>
+                        </div>
+                        <div class="p-3 bg-green-50 text-green-500 rounded-xl">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Flagged</p>
+                            <p class="text-2xl md:text-3xl font-extrabold text-slate-800 mt-2 group-hover:text-yellow-500 transition-colors">{{ flagged_count }}</p>
+                        </div>
+                        <div class="p-3 bg-yellow-50 text-yellow-500 rounded-xl">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-10">
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
+                    <h3 class="font-bold text-slate-700 mb-6 flex items-center text-sm md:text-base">
+                        <i class="fas fa-chart-pie text-slate-400 mr-2"></i> Classification Ratio
+                    </h3>
+                    <div class="h-64 flex justify-center items-center relative">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
+                    <h3 class="font-bold text-slate-700 mb-6 flex items-center text-sm md:text-base">
+                        <i class="fas fa-chart-line text-slate-400 mr-2"></i> Weekly Scan Activity
+                    </h3>
+                    <div class="h-64 w-full">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
+                <div class="px-4 md:px-8 py-4 md:py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-700 flex items-center text-sm md:text-base">
+                        <span class="w-2 h-2 rounded-full bg-red-500 mr-3 animate-pulse"></span>
+                        Flagged for Review
+                    </h3>
+                    <span class="text-xs font-medium text-slate-400 bg-white border px-3 py-1 rounded-full">Requires Attention</span>
+                </div>
+                
+                <table class="w-full text-left border-collapse min-w-[600px]"> <thead>
+                        <tr class="bg-slate-50 text-slate-500 uppercase text-xs font-semibold tracking-wider">
+                            <th class="py-3 px-4 md:py-4 md:px-8 border-b border-slate-100">ID</th>
+                            <th class="py-3 px-4 md:py-4 md:px-8 border-b border-slate-100">AI Result</th>
+                            <th class="py-3 px-4 md:py-4 md:px-8 border-b border-slate-100">Job Snippet</th>
+                            <th class="py-3 px-4 md:py-4 md:px-8 border-b border-slate-100 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-600 text-xs md:text-sm font-medium">
+                        {% if flagged_posts %}
+                            {% for row in flagged_posts %}
+                            <tr id="row-{{ row['id'] }}" class="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                                <td class="py-3 px-4 md:py-4 md:px-8">#{{ row['id'] }}</td>
+                                <td class="py-3 px-4 md:py-4 md:px-8">
+                                    {% if row['prediction'] == 'Fake Job' %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                                            Fake
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                                            Real
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4 md:py-4 md:px-8 text-slate-500 font-normal italic max-w-[150px] md:max-w-xs truncate">"{{ row['job_description'][:50] }}..."</td>
+                                <td class="py-3 px-4 md:py-4 md:px-8 text-center space-x-1 md:space-x-2">
+                                    <button onclick="takeAction('{{ row['id'] }}', 'dismiss')" class="text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-2 md:px-3 py-1 rounded-lg text-xs font-bold transition">
+                                        <i class="fas fa-check mr-1"></i> Safe
+                                    </button>
+                                    <button onclick="takeAction('{{ row['id'] }}', 'delete')" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 md:px-3 py-1 rounded-lg text-xs font-bold transition">
+                                        <i class="fas fa-trash mr-1"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="4" class="py-12 text-center text-slate-400">No flagged posts found. Great!</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // TOGGLE SIDEBAR LOGIC
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const isHidden = sidebar.classList.contains('-translate-x-full');
+
+            if (isHidden) {
+                // Show sidebar
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+                overlay.classList.add('opacity-50', 'pointer-events-auto');
+            } else {
+                // Hide sidebar
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                overlay.classList.remove('opacity-50', 'pointer-events-auto');
+            }
+        }
+        
+        // Chart Configuration (Enhanced Colors)
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        const pieCtx = document.getElementById("pieChart").getContext("2d");
+        new Chart(pieCtx, { 
+            type: "doughnut", 
+            data: { 
+                labels: ["Fake", "Real"], 
+                datasets: [{ 
+                    data: [{{ fake }}, {{ real }}], 
+                    backgroundColor: ["#ef4444", "#22c55e"],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }] 
+            },
+            options: {
+                cutout: '70%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } } }
+            }
+        });
+
+        const lineCtx = document.getElementById("lineChart").getContext("2d");
+        
+        // Gradient for Line Chart
+        let gradientReal = lineCtx.createLinearGradient(0, 0, 0, 400);
+        gradientReal.addColorStop(0, 'rgba(34, 197, 94, 0.2)');
+        gradientReal.addColorStop(1, 'rgba(34, 197, 94, 0)');
+
+        let gradientFake = lineCtx.createLinearGradient(0, 0, 0, 400);
+        gradientFake.addColorStop(0, 'rgba(239, 68, 68, 0.2)');
+        gradientFake.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+        new Chart(lineCtx, { 
+            type: "line", 
+            data: { 
+                labels: {{ dates | tojson }}, 
+                datasets: [
+                    { 
+                        label: "Real Jobs", 
+                        data: {{ real_counts | tojson }}, 
+                        borderColor: "#22c55e", 
+                        backgroundColor: gradientReal,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 3
+                    }, 
+                    { 
+                        label: "Fake Jobs", 
+                        data: {{ fake_counts | tojson }}, 
+                        borderColor: "#ef4444", 
+                        backgroundColor: gradientFake,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 3
+                    }
+                ] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { 
+                    y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true } } }
+            } 
+        });
+
+        // POPUP & ACTION LOGIC 
+        function closeModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+            location.reload(); 
+        }
+
+        async function confirmRetrain() {
+            if (!confirm("Are you sure you want to retrain the model? This might take a few moments.")) return;
+            
+            const btn = document.getElementById('retrainBtn');
+            const status = document.getElementById('trainStatus');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Processing...';
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            status.innerText = "Initializing training sequence...";
+
+            try {
+                const response = await fetch('/retrain_model', { method: 'POST' });
+                const data = await response.json();
+                
+                if(data.status === 'success') {
+                    status.innerText = "Finalizing...";
+                    
+                    // Parse URL params for modal
+                    const urlParams = new URLSearchParams(data.redirect_url.split('?')[1]);
+                    const oldAcc = urlParams.get('old');
+                    const newAcc = urlParams.get('new');
+                    const impVal = urlParams.get('imp');
+
+                    document.getElementById('modalOld').innerText = oldAcc + "%";
+                    document.getElementById('modalNew').innerText = newAcc + "%";
+                    
+                    const impElem = document.getElementById('modalImp');
+                    const isPositive = parseFloat(impVal) >= 0;
+                    impElem.innerText = (isPositive ? "+" : "") + impVal + "%";
+                    impElem.className = isPositive ? "text-lg font-bold text-green-600" : "text-lg font-bold text-red-600";
+
+                    document.getElementById('resultModal').classList.remove('hidden');
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (err) { 
+                console.error(err);
+                alert("Server Error during training.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                status.innerText = "";
+            }
+        }
+
+        async function takeAction(postId, actionType) {
+            if(!confirm("Confirm this action?")) return;
+            await fetch('/admin_action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ post_id: postId, action: actionType }) });
+            location.reload();
+        }
+    </script>
+</body>
+</html>

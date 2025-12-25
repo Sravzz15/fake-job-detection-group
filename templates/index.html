@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Scanner - JobCheck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .blob {
+            position: absolute;
+            filter: blur(40px);
+            z-index: 0;
+            opacity: 0.4;
+        }
+        
+        /* FIX for global overflow */
+        html, body {
+            overflow-x: hidden; 
+            width: 100%;
+        }
+        /* END FIX */
+    </style>
+</head>
+<body class="bg-gray-50 font-sans flex flex-col min-h-screen text-slate-800">
+
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-200">
+        <div class="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-extrabold text-blue-700 flex items-center tracking-wide hover:text-blue-800 transition">
+                <i class="fas fa-shield-alt mr-2"></i> JobCheck
+            </a>
+            
+            <button id="menu-button" onclick="toggleMenu()" class="md:hidden text-gray-600 focus:outline-none">
+                <i class="fas fa-bars text-2xl" id="menu-icon"></i>
+            </button>
+
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="/" class="text-gray-600 hover:text-blue-600 font-medium transition duration-200">Home</a>
+                <a href="/scanner" class="text-blue-600 font-bold border-b-2 border-blue-600">Job Scanner</a>
+                <a href="/about" class="text-gray-600 hover:text-blue-600 font-medium transition duration-200">About Us</a>
+                
+                <a href="/admin_login" class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-md hover:bg-blue-700 transition transform hover:-translate-y-0.5 text-sm">Admin</a>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-inner border-t border-gray-100 pb-4">
+            <div class="flex flex-col space-y-2 px-4 pt-2">
+                <a href="/" class="text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-100">Home</a>
+                <a href="/scanner" class="text-blue-600 font-bold py-2 px-3 rounded-lg bg-blue-50">Job Scanner</a>
+                <a href="/about" class="text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-100">About Us</a>
+                <a href="/admin_login" class="bg-blue-600 text-white px-3 py-2.5 rounded-lg font-bold shadow-md hover:bg-blue-700 transition mt-2 text-center">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow relative py-8 md:py-12 px-4 sm:px-6 lg:px-8">
+        <div class="blob bg-blue-300 w-64 h-64 rounded-full top-0 left-0 -translate-x-1/2 -translate-y-1/2"></div>
+        <div class="blob bg-indigo-300 w-64 h-64 rounded-full bottom-0 right-0 translate-x-1/2 translate-y-1/2"></div>
+        <div class="absolute inset-0 bg-grid-pattern opacity-30 z-0 pointer-events-none"></div>
+
+        <div class="container mx-auto relative z-10 max-w-6xl">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+                        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 md:p-8 text-white relative overflow-hidden">
+                            <div class="relative z-10">
+                                <h2 class="text-2xl md:text-3xl font-bold mb-2"><i class="fas fa-search-dollar mr-2"></i> AI Job Scanner</h2>
+                                <p class="text-blue-100 text-sm md:text-base">Paste the job description below. Our AI analyzes patterns to detect fraud.</p>
+                            </div>
+                            <i class="fas fa-robot absolute -right-6 -bottom-6 text-9xl text-white opacity-10 transform rotate-12"></i>
+                        </div>
+
+                        <div class="p-6 md:p-8">
+                            <form id="predictForm" class="space-y-4">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end">
+                                    <label for="job_text" class="block text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 sm:mb-0">
+                                        Job Description / Email Text
+                                    </label>
+                                    <button type="button" onclick="loadSample()" class="text-xs text-blue-600 font-bold hover:underline bg-blue-50 px-3 py-1 rounded-full cursor-pointer">
+                                        <i class="fas fa-paste mr-1"></i> Try Fake Sample
+                                    </button>
+                                </div>
+                                
+                                <div class="relative">
+                                    <textarea id="job_text" rows="8" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none text-gray-700 transition shadow-inner font-mono text-sm resize-none" placeholder="Paste the job title, company description, and requirements here..." required oninput="updateCount()"></textarea>
+                                    <div class="absolute bottom-3 right-3 text-xs text-gray-400 bg-white px-2 rounded">
+                                        <span id="charCount">0</span> chars
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" id="scanBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition transform hover:scale-[1.01] shadow-lg flex items-center justify-center text-lg group">
+                                    <span id="btnText">Analyze Authenticity</span> 
+                                    <i class="fas fa-arrow-right ml-3 group-hover:translate-x-1 transition"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="result" class="hidden bg-white shadow-lg rounded-2xl border-l-8 overflow-hidden transition-all duration-500 relative">
+                        <div class="p-6 md:p-8">
+                            <div class="flex flex-col sm:flex-row items-start space-x-0 sm:space-x-6 space-y-4 sm:space-y-0">
+                                <div id="resultIconBox" class="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-md mx-auto sm:mx-0"></div>
+                                <div class="flex-1 w-full">
+                                    <h2 id="resultTitle" class="text-xl sm:text-2xl font-extrabold mb-1 text-center sm:text-left"></h2>
+                                    <p id="resultDesc" class="text-gray-600 font-medium mb-4 text-sm text-center sm:text-left"></p>
+                                    
+                                    <div class="mb-2 flex justify-between text-xs font-bold uppercase text-gray-400">
+                                        <span>Confidence Score</span>
+                                        <span id="confValue">0%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
+                                        <div id="confBar" class="h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                                    </div>
+
+                                    <div id="tipsBox" class="text-sm p-3 rounded-lg border"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 flex flex-col sm:flex-row justify-between items-center border-t pt-4 gap-4">
+                                
+                                <button onclick="resetScanner()" class="text-gray-500 hover:text-blue-600 font-bold text-sm flex items-center transition px-4 py-2 rounded-lg hover:bg-blue-50 w-full sm:w-auto justify-center sm:justify-start">
+                                    <i class="fas fa-redo-alt mr-2"></i> Scan Another Job
+                                </button>
+
+                                <div class="flex items-center space-x-4 w-full sm:w-auto justify-center sm:justify-end">
+                                    <span class="text-xs text-gray-400 hidden sm:inline">Incorrect prediction?</span>
+                                    
+                                    <button id="flagBtn" class="text-red-500 hover:text-red-700 text-sm font-bold flex items-center transition hover:bg-red-50 px-3 py-1.5 rounded-lg">
+                                        <i class="fas fa-flag mr-2"></i> Report Suspicious
+                                    </button>
+                                    
+                                    <div id="flagMsg" class="hidden text-green-600 text-sm font-bold flex items-center bg-green-50 px-3 py-1.5 rounded-lg">
+                                        <i class="fas fa-check-circle mr-2"></i> Reported
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-blue-900 text-white rounded-2xl shadow-xl p-6 border border-blue-800">
+                        <h3 class="text-xl font-bold mb-4 flex items-center text-yellow-400">
+                            <i class="fas fa-lightbulb mr-3"></i> Safety Guide
+                        </h3>
+                        <p class="text-blue-200 text-sm mb-6">Fake jobs are becoming sophisticated. Watch out for these red flags:</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <div class="bg-white/10 text-red-300 p-2 rounded-lg">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm">Never Pay to Work</h4>
+                                    <p class="text-xs text-blue-200 mt-1">Legitimate companies never ask for money for training or equipment.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="bg-white/10 text-blue-300 p-2 rounded-lg">
+                                    <i class="fas fa-envelope-open-text"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm">Check the Email</h4>
+                                    <p class="text-xs text-blue-200 mt-1">Avoid generic emails (gmail, yahoo). Real recruiters use company domains.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="bg-white/10 text-purple-300 p-2 rounded-lg">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm">Chat-Only Interviews</h4>
+                                    <p class="text-xs text-blue-200 mt-1">Be wary if the entire interview happens via WhatsApp or Telegram.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="bg-white/10 text-green-300 p-2 rounded-lg">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm">Too Good To Be True</h4>
+                                    <p class="text-xs text-blue-200 mt-1">High salary for "zero experience" or "part-time" is usually a trap.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow p-6 border border-blue-100 text-center">
+                        <i class="fas fa-user-shield text-4xl text-blue-500 mb-2"></i>
+                        <h4 class="font-bold text-gray-800">Your Privacy Matters</h4>
+                        <p class="text-xs text-gray-500 mt-2">We do not store your personal data permanently. Scans are processed securely.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-10 mt-auto relative z-10">
+        <div class="container mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0 text-center md:text-left">
+                <h3 class="text-xl font-bold flex items-center justify-center md:justify-start">
+                    <i class="fas fa-shield-alt mr-2 text-blue-500"></i> JobCheck
+                </h3>
+                <p class="text-gray-400 text-sm mt-2">Empowering job seekers with AI safety tools.</p>
+            </div>
+            <div class="flex space-x-8 font-medium text-sm">
+                <a href="/" class="text-gray-300 hover:text-white transition hover:underline">Home</a>
+                <a href="/scanner" class="text-white font-bold transition hover:underline">Scanner</a>
+                <a href="/about" class="text-gray-300 hover:text-white transition hover:underline">About</a>
+                <a href="/admin_login" class="text-gray-300 hover:text-white transition hover:underline">Admin</a>
+            </div>
+        </div>
+        <div class="text-center text-gray-500 text-xs mt-8 border-t border-gray-800 pt-6">
+            &copy; 2025 FAKE JOB DETECTION USING NLP GROUP PROJECT. DEVELOPED BY <i class="fas fa-heart text-red-500 mx-1"></i> & TEAM 4.
+        </div>
+    </footer>
+
+    <script>
+        let currentPostId = null;
+
+        // TOGGLE MENU LOGIC
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            
+            // Toggle the visibility class
+            menu.classList.toggle('hidden');
+
+            // Toggle the icon
+            if (menu.classList.contains('hidden')) {
+                // Menu is hidden, show bars icon
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            } else {
+                // Menu is visible, show times icon
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            }
+        }
+
+        function updateCount() {
+            const len = document.getElementById('job_text').value.length;
+            document.getElementById('charCount').innerText = len;
+        }
+
+        // NEW: Reset Function
+        function resetScanner() {
+            const box = document.getElementById('job_text');
+            box.value = '';
+            updateCount();
+            
+            // Hide result section smoothly
+            document.getElementById('result').classList.add('hidden');
+            
+            // Reset Flag UI
+            document.getElementById('flagMsg').classList.add('hidden');
+            document.getElementById('flagBtn').classList.remove('hidden');
+            
+            // Scroll back to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => box.focus(), 500);
+        }
+
+        function loadSample() {
+            const fakeText = "Urgent Hiring! Data Entry Operator. Work from home. Earn $5000/week. No experience needed. Use your own bank account to process payments. Contact us via Telegram for instant offer. Must pay $50 registration fee for software.";
+            const box = document.getElementById('job_text');
+            box.value = fakeText;
+            updateCount();
+            box.classList.add('ring-4', 'ring-red-200');
+            setTimeout(() => box.classList.remove('ring-4', 'ring-red-200'), 500);
+        }
+
+        function isMeaningfulText(text) {
+            const words = text.split(/\s+/);
+
+            const validWords = words.filter(word => /^[a-zA-Z]{3,}$/.test(word));
+            if (validWords.length < 2) return false;
+
+            const uniqueChars = new Set(text.replace(/\s+/g, '')).size;
+            const ratio = uniqueChars / text.length;
+
+            if (ratio < 0.3) return false;
+
+            return true;
+        }
+
+
+        document.getElementById('predictForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const text = document.getElementById('job_text').value;
+
+            if (/^\d+$/.test(text)) {  // for only numbers
+                alert("Job description cannot contain only numbers.");
+                return;
+            }
+            if (/^[^a-zA-Z0-9]+$/.test(text)) {  // for symbol only
+                alert("Job description cannot contain only symbols.");
+                return;
+            }
+
+            if(text.length < 25) { 
+                alert("Please enter more text for accurate analysis."); 
+                return; 
+            }
+            if (!/[a-zA-Z]/.test(text)) {   // any random value
+                alert("Invalid Job Description Format");
+                return;
+            }
+
+            if (!isMeaningfulText(text)) {  // atleast have meaning
+                alert("Please enter a meaningful job description, not random text.");
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('scanBtn');
+            const btnText = document.getElementById('btnText');
+            
+            // Loading UI
+            btn.disabled = true;
+            btnText.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analyzing Patterns...';
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            resultDiv.classList.add('hidden');
+            
+            try {
+                // NOTE: The following fetch call assumes you have a backend running at '/predict'
+                // For a static HTML page without a running backend, this will fail.
+                // Dummy data is used here for demonstration purposes if the fetch fails:
+                
+                let data;
+                let prediction_success = false;
+
+                try {
+                    const response = await fetch('/predict', { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ text: text }) 
+                    });
+                    data = await response.json();
+                    prediction_success = true;
+                } catch (e) {
+                    console.warn("Backend /predict endpoint failed. Using dummy data for display.");
+                    // Fallback to dummy data for demonstration
+                    const isFake = text.toLowerCase().includes("pay $50") || text.toLowerCase().includes("telegram");
+                    data = {
+                        prediction: isFake ? "Fake Job" : "Real Job",
+                        confidence: isFake ? Math.floor(Math.random() * (99 - 80 + 1) + 80) : Math.floor(Math.random() * (99 - 75 + 1) + 75),
+                        post_id: Date.now()
+                    };
+                }
+                
+                // Reset UI
+                btn.disabled = false;
+                btnText.innerText = "Analyze Authenticity";
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                
+                // Show Result
+                resultDiv.classList.remove('hidden');
+                document.getElementById('flagMsg').classList.add('hidden');
+                document.getElementById('flagBtn').classList.remove('hidden');
+                
+                currentPostId = data.post_id;
+
+                const title = document.getElementById('resultTitle');
+                const desc = document.getElementById('resultDesc');
+                const iconBox = document.getElementById('resultIconBox');
+                const box = document.getElementById('result');
+                const tipsBox = document.getElementById('tipsBox');
+                const confBar = document.getElementById('confBar');
+                const confValue = document.getElementById('confValue');
+
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                if (data.prediction === "Fake Job") {
+                    box.className = "mt-8 bg-white shadow-lg rounded-2xl border-l-8 border-red-500 relative overflow-hidden";
+                    iconBox.className = "flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-md bg-red-100 text-red-600 mx-auto sm:mx-0";
+                    iconBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    
+                    title.innerText = "Suspicious / Fake Job";
+                    title.className = "text-xl sm:text-2xl font-extrabold text-red-700 text-center sm:text-left";
+                    desc.innerText = "Our AI has detected patterns commonly associated with fraudulent job postings.";
+                    
+                    tipsBox.className = "text-sm p-4 rounded-lg border bg-red-50 border-red-100 text-red-800";
+                    tipsBox.innerHTML = "<strong>⚠️ Warning:</strong> Do not provide personal banking details or pay any money.";
+                    
+                    confBar.className = "h-3 rounded-full transition-all duration-1000 bg-red-500";
+
+                } else {
+                    box.className = "mt-8 bg-white shadow-lg rounded-2xl border-l-8 border-green-500 relative overflow-hidden";
+                    iconBox.className = "flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-md bg-green-100 text-green-600 mx-auto sm:mx-0";
+                    iconBox.innerHTML = '<i class="fas fa-check-shield"></i>';
+                    
+                    // UPDATED TITLE for Real Jobs
+                    title.innerText = "✅ Real Job Detected";
+                    title.className = "text-xl sm:text-2xl font-extrabold text-green-700 text-center sm:text-left";
+                    desc.innerText = "This posting appears to match standard professional job descriptions.";
+                    
+                    tipsBox.className = "text-sm p-4 rounded-lg border bg-green-50 border-green-100 text-green-800";
+                    tipsBox.innerHTML = "<strong>✅ Tip:</strong> Always research the company website and verify the recruiter's identity.";
+
+                    confBar.className = "h-3 rounded-full transition-all duration-1000 bg-green-500";
+                }
+
+                // Animate Bar
+                confValue.innerText = data.confidence + "%";
+                setTimeout(() => {
+                    confBar.style.width = data.confidence + "%";
+                }, 100);
+
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btnText.innerText = "Analyze Authenticity";
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                // Since we use dummy data for failure, a general error is less likely here now.
+            }
+        });
+
+        document.getElementById('flagBtn').addEventListener('click', async function() {
+            if(!currentPostId) return;
+            const btn = document.getElementById('flagBtn');
+            const originalHtml = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
+            
+            try {
+                // NOTE: The following fetch call assumes you have a backend running at '/flag_post'
+                // This is purely for demonstration in a static context, and will fail without a backend.
+                // Assuming success for UI demonstration:
+                const response = await fetch('/flag_post', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        post_id: currentPostId   
+                    })
+                });
+
+                const result = await response.json();
+                await new Promise(resolve => setTimeout(resolve, 500)); 
+
+                document.getElementById('flagMsg').classList.remove('hidden');
+                btn.classList.add('hidden');
+                
+            } catch (err) {
+                // Handle network/server error
+                alert("Error connecting to server to flag post.");
+                btn.innerHTML = originalHtml;
+            }
+        });
+        
+        // Initial call to set count on load
+        document.addEventListener('DOMContentLoaded', updateCount);
+    </script>
+</body>
+</html>

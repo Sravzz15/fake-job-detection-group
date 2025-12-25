@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Admin Login - JobCheck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ADDED: Background gradient overlay for depth */
+        .bg-gradient-overlay {
+            background-image: radial-gradient(at 10% 10%, rgba(255, 255, 255, 0.5) 0%, transparent 50%),
+                              radial-gradient(at 90% 90%, rgba(255, 255, 255, 0.5) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .blob {
+            position: absolute;
+            filter: blur(40px);
+            z-index: 0;
+            opacity: 0.4;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        /* Shake Animation for Wrong Password */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-element {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        /* FIX: Optional fix for horizontal scroll, though `overflow-hidden` on main should help */
+        body {
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans flex flex-col min-h-screen">
+
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-200">
+        <div class="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-extrabold text-blue-700 flex items-center tracking-wide hover:text-blue-800 transition">
+                <i class="fas fa-shield-alt mr-2"></i> JobCheck
+            </a>
+            
+            <button id="menu-button" onclick="toggleMenu()" class="md:hidden text-gray-600 focus:outline-none">
+                <i class="fas fa-bars text-2xl" id="menu-icon"></i>
+            </button>
+
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="/" class="text-gray-600 hover:text-blue-600 font-medium transition duration-200">Home</a>
+                <a href="/scanner" class="text-gray-600 hover:text-blue-600 font-medium transition duration-200">Job Scanner</a>
+                <a href="/about" class="text-gray-600 hover:text-blue-600 font-medium transition duration-200">About Us</a>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-inner border-t border-gray-100 pb-4">
+            <div class="flex flex-col space-y-2 px-4 pt-2">
+                <a href="/" class="text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-100">Home</a>
+                <a href="/scanner" class="text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-100">Job Scanner</a>
+                <a href="/about" class="text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-100">About Us</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex items-center justify-center relative py-12 px-4 overflow-hidden">
+        
+        <div class="blob bg-blue-300 w-64 h-64 rounded-full top-10 left-10"></div>
+        <div class="blob bg-indigo-300 w-64 h-64 rounded-full bottom-10 right-10"></div>
+        <div class="absolute inset-0 bg-grid-pattern opacity-30 z-0 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-overlay z-0"></div> 
+        
+        <div class="bg-white/90 backdrop-blur-xl p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 border border-white/50 transition-all duration-300" id="loginCard">
+            
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 mb-4 shadow-inner animate-float border border-blue-100">
+                    <i class="fas fa-user-lock text-4xl text-blue-600"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold text-gray-800 tracking-tight">Admin Portal</h2>
+                <div class="flex justify-center items-center mt-2 space-x-2">
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </span>
+                    <p class="text-gray-500 text-sm font-medium">System Online & Secure</p>
+                </div>
+            </div>
+
+            {% if error %}
+            <script>
+                // Add shake effect on error load
+                document.addEventListener("DOMContentLoaded", function() {
+                    document.getElementById('loginCard').classList.add('shake-element');
+                    
+                    // ADDED: Re-populate username on error
+                    const lastUsername = localStorage.getItem('last_username');
+                    if (lastUsername) {
+                        document.querySelector('input[name="username"]').value = lastUsername;
+                    }
+                });
+            </script>
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 text-sm rounded-r shadow-sm flex items-start animate-pulse">
+                <i class="fas fa-exclamation-triangle mt-0.5 mr-3"></i>
+                <div>
+                    <span class="font-bold">Access Denied:</span> {{ error }}
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-6" onsubmit="saveUsername()"> 
+                <input type="text" name="hp_field" class="hidden" tabindex="-1" autocomplete="off">
+
+                <div class="group">
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase tracking-wider">Username / ID</label>
+                    <div class="relative transition-all duration-300 transform group-focus-within:ring-4 group-focus-within:ring-blue-100/50 rounded-xl"> 
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user-circle text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                        </div>
+                        <input type="text" name="username" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:border-blue-500 block outline-none transition-all font-medium" placeholder="admin_user" required>
+                    </div>
+                </div>
+
+                <div class="group relative">
+                    <label class="block text-gray-700 font-bold mb-2 text-xs uppercase tracking-wider">Secure Password</label>
+                    <div class="relative transition-all duration-300 transform group-focus-within:ring-4 group-focus-within:ring-blue-100/50 rounded-xl"> 
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-key text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                        </div>
+                        
+                        <input type="password" id="passwordInput" name="password" class="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:border-blue-500 block outline-none transition-all font-medium" placeholder="••••••••" required>
+                        
+                        <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-600 transition cursor-pointer focus:outline-none">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+
+                    <div id="capsLockWarning" class="hidden absolute -bottom-6 left-0 flex items-center text-xs text-yellow-600 font-bold animate-pulse">
+                        <i class="fas fa-arrow-up mr-1"></i> Caps Lock is ON
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between text-sm pt-2">
+                    <label class="flex items-center text-gray-600 cursor-pointer hover:text-gray-800 mb-3 sm:mb-0">
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out">
+                        <span class="ml-2">Remember me</span>
+                    </label>
+                    <a href="#" class="font-medium text-blue-600 hover:text-blue-500 hover:underline">
+                        Forgot password?
+                    </a>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 duration-200 flex justify-center items-center group">
+                    <span>Authenticate Access</span>
+                    <i class="fas fa-fingerprint ml-3 text-blue-200 group-hover:text-white transition-colors"></i>
+                </button>
+            </form>
+
+            <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center text-sm gap-4">
+                <a href="/" class="text-gray-500 hover:text-blue-600 font-medium flex items-center transition group">
+                    <i class="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i> Home
+                </a>
+                
+                <div class="flex items-center text-xs text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100 cursor-help" title="Connection is encrypted">
+                    <i class="fas fa-lock mr-1.5"></i> SSL Secured
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-10 mt-auto relative z-10">
+        <div class="container mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0 text-center md:text-left">
+                <h3 class="text-xl font-bold flex items-center justify-center md:justify-start">
+                    <i class="fas fa-shield-alt mr-2 text-blue-500"></i> JobCheck
+                </h3>
+                <p class="text-gray-400 text-sm mt-2">Restricted Area. Unauthorized access is prohibited.</p>
+            </div>
+        </div>
+        <div class="text-center text-gray-500 text-sm mt-8 border-t border-gray-800 pt-6">
+            &copy; 2025 FAKE JOB DETECTION USING NLP GROUP PROJECT. DEVELOPED BY <i class="fas fa-heart text-red-500 mx-1"></i> & TEAM 4.
+        </div>
+    </footer>
+
+    <script>
+        // TOGGLE MENU LOGIC (For public nav bar)
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            
+            // Toggle the visibility class
+            menu.classList.toggle('hidden');
+
+            // Toggle the icon
+            if (menu.classList.contains('hidden')) {
+                // Menu is hidden, show bars icon
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            } else {
+                // Menu is visible, show times icon
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            }
+        }
+
+        // Feature 1: Toggle Password Visibility
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Feature 2: Caps Lock Detection
+        const passwordInput = document.getElementById("passwordInput");
+        const capsWarning = document.getElementById("capsLockWarning");
+
+        passwordInput.addEventListener("keyup", function(event) {
+            if (event.getModifierState("CapsLock")) {
+                capsWarning.classList.remove("hidden");
+            } else {
+                capsWarning.classList.add("hidden");
+            }
+        });
+        
+        // ADDED FEATURE 3: Save username on submit
+        function saveUsername() {
+            const username = document.querySelector('input[name="username"]').value;
+            localStorage.setItem('last_username', username);
+        }
+
+        // ADDED FEATURE 4: Auto-focus password if username is already filled (Improves user flow)
+        document.addEventListener("DOMContentLoaded", function() {
+            const usernameInput = document.querySelector('input[name="username"]');
+            if (usernameInput.value.length > 0) {
+                passwordInput.focus();
+            } else {
+                usernameInput.focus();
+            }
+        });
+
+    </script>
+
+</body>
+</html>
